@@ -1,0 +1,35 @@
+#just for testing
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: testjob
+  namespace: panoptes
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+      - name: btregcred
+      containers:
+      - name: algorithm-execution
+        image: registry.docker.nat.bt.com/vulcanapplications/kstest-application:latest
+        env:
+        - name: FEAST_S3_ENDPOINT_URL
+          value: http://minio-service.kubeflow.svc.cluster.local:9000
+        - name: AWS_ACCESS_KEY_ID
+          value: minio
+        - name: AWS_SECRET_ACCESS_KEY
+          value: minio123
+        - name: modelName
+          value: callcenter
+        - name: deploymentName
+          value: callFeatures
+        - name: historicalFeatures
+          value: waitDuration
+        - name: liveFeatures
+          value: waitDuration
+        - name: baseAlgorithmExecutionName
+          value: KS_CALLCENTER_WAITDURATION
+        - name: brokerEndpoint
+          value: http://broker-ingress.knative-eventing.svc.cluster.local/panoptes/default
+      restartPolicy: Never
+  backoffLimit: 4

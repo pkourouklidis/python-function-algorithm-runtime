@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+cloudevents = "*"
+pytest = "*"
+sh = "*"
+scipy = "*"
+feast = {extras = ["aws"], version = "*"}
+pandas = "*"
+kubernetes = "==21.7.0"
+
+[dev-packages]
+black = "*"
+
+[requires]
+python_version = "3.10"

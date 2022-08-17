@@ -1,0 +1,24 @@
+# just for testing
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: message-dumper
+  namespace: panoptes
+spec:
+  template:
+    spec:
+      containers:
+      - image: gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/event_display
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: message-dumper-trigger
+  namespace: panoptes
+spec:
+  broker: default
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: message-dumper
