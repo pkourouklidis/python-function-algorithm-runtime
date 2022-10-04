@@ -60,11 +60,11 @@ if __name__ == "__main__":
     print(level, raw)
 
     attributes = {
-    "source": "pythonFunction." + executionName,
+    "source": "runtimes.pythonFunction",
     "type": "org.lowcomote.panoptes.baseAlgorithmExecution.result",
     }
     
-    data = {"name": executionName, "level": level, "raw": raw}
+    data = {"deployment": deploymentName, "algorithmExecution": executionName, "level": level, "rawResult": raw, "date": datetime.datetime.now(tz=utc)}
 
     event = CloudEvent(attributes, data)
     headers, data = to_structured(event)
