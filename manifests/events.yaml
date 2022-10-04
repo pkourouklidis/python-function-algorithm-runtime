@@ -1,0 +1,33 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: python-function-runtime-algorithm-create
+  namespace: panoptes
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: org.lowcomote.panoptes.baseAlgorithm.create
+      subject: pythonFunction
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: python-function-runtime
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: python-function-runtime-algorithm-execution
+  namespace: panoptes
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: org.lowcomote.panoptes.baseAlgorithmExecution.trigger
+      subject: pythonFunction
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: python-function-runtime

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-function-runtime
+  namespace: panoptes
+spec:
+  selector:
+    matchLabels:
+      app: python-function-runtime
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: python-function-runtime
+    spec:
+      containers:
+      - image: registry.docker.nat.bt.com/panoptes/python-function-runtime:latest
+        name: python-function-runtime
+        ports:
+        - containerPort: 5000
+        env:
+        - name: brokerEndpoint
+          value: http://broker-ingress.knative-eventing.svc.cluster.local/panoptes/default
+      imagePullSecrets:
+      - name: panoptes-registry-credentials
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-function-runtime
+  namespace: panoptes
+spec:
+  ports:
+  - port: 80
+    targetPort: 5000
+  selector:
+    app: python-function-runtime
