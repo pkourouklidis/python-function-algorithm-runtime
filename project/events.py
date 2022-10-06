@@ -12,7 +12,7 @@ from kubernetes import client, config
 bp = Blueprint("events", __name__)
 
 
-@bp.route("/events", methods=["POST"])
+@bp.route("/", methods=["POST"])
 def receiveEvent():
     event = from_http(request.headers, request.get_data())
     current_app.logger.info(
