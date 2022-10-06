@@ -46,7 +46,7 @@ if __name__ == "__main__":
     liveFeatures = os.environ["liveFeatures"].split(",")
     executionName = os.environ["baseAlgorithmExecutionName"]
     brokerEndpoint = os.environ["brokerEndpoint"]
-    startDate = datetime.datetime().fromisoformat(os.environ["liveFeaturesStartDate"])
+    startDate = datetime.datetime().fromisoformat(os.environ["startDate"])
     store = FeatureStore(repo_path=".")
     historicalData = None
     if len(historicalFeatures) > 0:
