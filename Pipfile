@@ -6,15 +6,14 @@ name = "pypi"
 [packages]
 flask = "*"
 cloudevents = "*"
-pytest = "*"
 sh = "*"
-scipy = "*"
-feast = {extras = ["aws"], version = "*"}
-pandas = "*"
 kubernetes = "==21.7.0"
 
 [dev-packages]
 black = "*"
+pytest = "*"
+scipy = "*"
+feast = {extras = ["aws"], version = "*"}
 
 [requires]
 python_version = "3.10"
