@@ -94,7 +94,7 @@ def triggerExecution(eventData):
         {"name": "AWS_SECRET_ACCESS_KEY", "value": "minio123"},
     ]
     algorithmName = eventData["algorithmName"]
-    config.load_kube_config()
+    config.load_incluster_config()
     batch_v1 = client.BatchV1Api()
     job = create_job_object(algorithmName, envList)
     api_response = batch_v1.create_namespaced_job(body=job, namespace="panoptes")
