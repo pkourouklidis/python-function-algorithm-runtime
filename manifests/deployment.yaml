@@ -24,6 +24,7 @@ spec:
           value: http://broker-ingress.knative-eventing.svc.cluster.local/panoptes/default
       imagePullSecrets:
       - name: panoptes-registry-credentials
+      serviceAccount: algorithm-runtime
 ---
 apiVersion: v1
 kind: Service
