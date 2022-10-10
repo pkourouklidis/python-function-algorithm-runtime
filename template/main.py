@@ -1,7 +1,6 @@
 import datetime
 import os
 
-# import pandas as pd
 from feast import FeatureStore, FileSource
 from pytz import utc
 
