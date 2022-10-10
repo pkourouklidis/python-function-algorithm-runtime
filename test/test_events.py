@@ -1,5 +1,6 @@
 import pytest
-from cloudevents.http import CloudEvent, to_structured
+from cloudevents.http import CloudEvent
+from cloudevents.conversion import to_structured
 from project import create_app
 
 
@@ -22,7 +23,7 @@ def test_random_type(app):
 
     with app.test_client() as test_client:
 
-        response = test_client.post("/events", data=data, headers=headers)
+        response = test_client.post("/", data=data, headers=headers)
         assert response.status_code == 200
 
 
@@ -43,7 +44,7 @@ def test_algorithm_create(app):
 
     with app.test_client() as test_client:
 
-        response = test_client.post("/events", data=data, headers=headers)
+        response = test_client.post("/", data=data, headers=headers)
         assert response.status_code == 200
 
 
@@ -68,5 +69,5 @@ def test_algorithmExecution_trigger(app):
     headers, data = to_structured(event)
 
     with app.test_client() as test_client:
-        response = test_client.post("/events", data=data, headers=headers)
+        response = test_client.post("/", data=data, headers=headers)
         assert response.status_code == 200
