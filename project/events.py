@@ -1,4 +1,4 @@
-from flask import request, current_app, Blueprint
+from flask import request, Response, current_app, Blueprint
 from cloudevents.http import from_http
 from sh import git
 from sh import rm
@@ -22,7 +22,7 @@ def receiveEvent():
         buildAlgorithm(event.data)
     elif event["type"] == "org.lowcomote.panoptes.baseAlgorithmExecution.trigger":
         triggerExecution(event.data)
-    return "ok"
+    return Response(status=200)
 
 
 def buildAlgorithm(eventData):
