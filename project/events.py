@@ -112,7 +112,7 @@ def create_job_object(algorithmName, envList):
     # Create and configure a spec section
     template = client.V1PodTemplateSpec(
         spec=client.V1PodSpec(
-            image_pull_secrets=[{"name": "btregcred"}],
+            image_pull_secrets=[{"name": "vulcan-registry-credentials"}],
             restart_policy="Never",
             containers=[container],
         )
