@@ -20,16 +20,10 @@ def getLiveData(deploymentName, store, liveFeatures, startDate):
     source = fv.batch_source
     if type(source) == FileSource:
         from feast.infra.offline_stores.file import FileOfflineStore
-
-        joinKeys = [
-            item
-            for sublist in [store.get_entity(x).join_keys for x in fv.entities]
-            for item in sublist
-        ]
         liveData = FileOfflineStore.pull_all_from_table_or_query(
             config=store.config,
             data_source=source,
-            join_key_columns=joinKeys,
+            join_key_columns=fv.join_keys,
             timestamp_field=source.timestamp_field,
             feature_name_columns=liveFeatures,
             start_date=startDate,
@@ -45,7 +39,7 @@ if __name__ == "__main__":
     liveFeatures = os.environ["liveFeatures"].split(",")
     executionName = os.environ["baseAlgorithmExecutionName"]
     brokerEndpoint = os.environ["brokerEndpoint"]
-    startDate = datetime.datetime().fromisoformat(os.environ["startDate"])
+    startDate = datetime.datetime.fromisoformat(os.environ["startDate"].replace("Z", "+00:00"))
     store = FeatureStore(repo_path=".")
     historicalData = None
     if len(historicalFeatures) > 0:
@@ -63,7 +57,7 @@ if __name__ == "__main__":
     "type": "org.lowcomote.panoptes.baseAlgorithmExecution.result",
     }
     
-    data = {"deployment": deploymentName, "algorithmExecution": executionName, "level": level, "rawResult": raw, "date": datetime.datetime.now(tz=utc)}
+    data = {"deployment": deploymentName, "algorithmExecution": executionName, "level": level, "rawResult": str(raw), "date": datetime.datetime.now(tz=utc).isoformat()}
 
     event = CloudEvent(attributes, data)
     headers, data = to_structured(event)
