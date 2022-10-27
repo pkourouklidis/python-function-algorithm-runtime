@@ -55,7 +55,7 @@ def createDescriptor(name, tempdir):
         for line in file:
             descriptor += "  - " + line + "\n"
     # base dependencies
-    descriptor += "  - feast[aws]\n  - pandas\n  - cloudevents\n  - requests\n\n"
+    descriptor += "  - feast[aws,postgres]\n  - pandas\n  - cloudevents\n  - requests\n\n"
 
     # additional information
     descriptor += "requiresWebserver: none\nrunCommand: python main.py"
@@ -118,7 +118,7 @@ def create_job_object(algorithmName, envList):
         )
     )
     # Create the specification of deployment
-    spec = client.V1JobSpec(template=template, backoff_limit=4)
+    spec = client.V1JobSpec(template=template, backoff_limit=4, ttl_seconds_after_finished=300)
     # Instantiate the job object
     job = client.V1Job(
         api_version="batch/v1",
