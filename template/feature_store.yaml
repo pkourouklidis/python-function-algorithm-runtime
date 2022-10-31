@@ -1,6 +1,12 @@
 project: feast_demo_kubeflow
+entity_key_serialization_version: 2
 provider: local
 registry: s3://feast/registry.pb
 online_store: null
 offline_store:
-  type: file
+  type: postgres
+  host: dashboard-postgresql.istio-system.svc.cluster.local
+  port: 5432
+  database: postgres
+  user: postgres
+  password: ImIB1Qksfq

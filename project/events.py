@@ -82,6 +82,7 @@ def triggerExecution(eventData):
             "value": eventData["baseAlgorithmExecutionName"],
         },
         {"name": "startDate", "value": eventData["startDate"]},
+        {"name": "endDate", "value": eventData["endDate"]},
         {
             "name": "brokerEndpoint",
             "value": "http://broker-ingress.knative-eventing.svc.cluster.local/panoptes/default",

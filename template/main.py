@@ -2,6 +2,7 @@ import datetime
 import os
 
 from feast import FeatureStore, FileSource
+from feast.infra.offline_stores.contrib.postgres_offline_store.postgres_source import PostgreSQLSource
 from pytz import utc
 
 from detector import detector
@@ -14,21 +15,27 @@ def getHistoricalData(modelName, store, historicalFeatures):
     return historicalData[historicalFeatures]
 
 
-def getLiveData(deploymentName, store, liveFeatures, startDate):
+def getLiveData(deploymentName, store, liveFeatures, startDate, endDate):
     fv = store.get_feature_view(deploymentName)
     liveData = None
     source = fv.batch_source
     if type(source) == FileSource:
         from feast.infra.offline_stores.file import FileOfflineStore
-        liveData = FileOfflineStore.pull_all_from_table_or_query(
-            config=store.config,
-            data_source=source,
-            join_key_columns=fv.join_keys,
-            timestamp_field=source.timestamp_field,
-            feature_name_columns=liveFeatures,
-            start_date=startDate,
-            end_date=datetime.datetime.now(tz=utc),
-        ).to_df()
+        offlineStoreClass = FileOfflineStore
+    elif type(source) == PostgreSQLSource:
+        from feast.infra.offline_stores.contrib.postgres_offline_store.postgres import PostgreSQLOfflineStore
+        offlineStoreClass = PostgreSQLOfflineStore
+
+    liveData = offlineStoreClass.pull_all_from_table_or_query(
+        config=store.config,
+        data_source=source,
+        join_key_columns=fv.join_keys,
+        timestamp_field=source.timestamp_field,
+        feature_name_columns=liveFeatures,
+        start_date=startDate,
+        end_date=endDate,
+    ).to_df()
+    
     return liveData[liveFeatures]
 
 
@@ -40,13 +47,14 @@ if __name__ == "__main__":
     executionName = os.environ["baseAlgorithmExecutionName"]
     brokerEndpoint = os.environ["brokerEndpoint"]
     startDate = datetime.datetime.fromisoformat(os.environ["startDate"].replace("Z", "+00:00"))
+    endDate = datetime.datetime.fromisoformat(os.environ["endDate"].replace("Z", "+00:00"))
     store = FeatureStore(repo_path=".")
     historicalData = None
     if len(historicalFeatures) > 0:
         historicalData = getHistoricalData(modelName, store, historicalFeatures)
     liveData = None
     if len(liveFeatures) > 0:
-        liveData = getLiveData(deploymentName, store, liveFeatures, startDate)
+        liveData = getLiveData(deploymentName, store, liveFeatures, startDate, endDate)
     level, raw = detector(historicalData, liveData)
     print(historicalData)
     print(liveData)

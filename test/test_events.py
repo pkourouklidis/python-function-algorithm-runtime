@@ -36,7 +36,7 @@ def test_algorithm_create(app):
 
     data = {
         "name": "ks_test",
-        "codebase": "https://gitlab.betalab.rp.bt.com/betalab/panoptes/examplealgorithmrepo.git",
+        "codebase": "https://gitlab.agile.nat.bt.com/BETALAB/research/panoptes/example-algorithm-repo",
     }
 
     event = CloudEvent(attributes, data)

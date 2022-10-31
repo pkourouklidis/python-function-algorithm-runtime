@@ -13,7 +13,7 @@ kubernetes = "==21.7.0"
 black = "*"
 pytest = "*"
 scipy = "*"
-feast = {extras = ["aws"], version = "*"}
+feast = {extras = ["aws,postgres"], version = "*"}
 
 [requires]
 python_version = "3.10"
