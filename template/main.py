@@ -2,11 +2,13 @@ import datetime
 import os
 
 from feast import FeatureStore, FileSource
-from feast.infra.offline_stores.contrib.postgres_offline_store.postgres_source import PostgreSQLSource
+from feast.infra.offline_stores.contrib.postgres_offline_store.postgres_source import (
+    PostgreSQLSource,
+)
 from pytz import utc
 
 from detector import detector
-from cloudevents.http import CloudEvent, to_structured 
+from cloudevents.http import CloudEvent, to_structured
 import requests
 
 
@@ -21,9 +23,13 @@ def getLiveData(deploymentName, store, liveFeatures, startDate, endDate):
     source = fv.batch_source
     if type(source) == FileSource:
         from feast.infra.offline_stores.file import FileOfflineStore
+
         offlineStoreClass = FileOfflineStore
     elif type(source) == PostgreSQLSource:
-        from feast.infra.offline_stores.contrib.postgres_offline_store.postgres import PostgreSQLOfflineStore
+        from feast.infra.offline_stores.contrib.postgres_offline_store.postgres import (
+            PostgreSQLOfflineStore,
+        )
+
         offlineStoreClass = PostgreSQLOfflineStore
 
     liveData = offlineStoreClass.pull_all_from_table_or_query(
@@ -35,7 +41,7 @@ def getLiveData(deploymentName, store, liveFeatures, startDate, endDate):
         start_date=startDate,
         end_date=endDate,
     ).to_df()
-    
+
     return liveData[liveFeatures]
 
 
@@ -46,8 +52,12 @@ if __name__ == "__main__":
     liveFeatures = os.environ["liveFeatures"].split(",")
     executionName = os.environ["baseAlgorithmExecutionName"]
     brokerEndpoint = os.environ["brokerEndpoint"]
-    startDate = datetime.datetime.fromisoformat(os.environ["startDate"].replace("Z", "+00:00"))
-    endDate = datetime.datetime.fromisoformat(os.environ["endDate"].replace("Z", "+00:00"))
+    startDate = datetime.datetime.fromisoformat(
+        os.environ["startDate"].replace("Z", "+00:00")
+    )
+    endDate = datetime.datetime.fromisoformat(
+        os.environ["endDate"].replace("Z", "+00:00")
+    )
     store = FeatureStore(repo_path=".")
     historicalData = None
     if len(historicalFeatures) > 0:
@@ -61,15 +71,22 @@ if __name__ == "__main__":
     print(level, raw)
 
     attributes = {
-    "source": "runtimes.pythonFunction",
-    "type": "org.lowcomote.panoptes.baseAlgorithmExecution.result",
+        "source": "runtimes.pythonFunction",
+        "type": "org.lowcomote.panoptes.baseAlgorithmExecution.result",
     }
-    
-    data = {"deployment": deploymentName, "algorithmExecution": executionName, "level": level, "rawResult": str(raw), "date": datetime.datetime.now(tz=utc).isoformat()}
+
+    data = {
+        "deployment": deploymentName,
+        "algorithmExecution": executionName,
+        "level": level,
+        "rawResult": str(raw),
+        "startDate": startDate,
+        "endDate": endDate,
+    }
 
     event = CloudEvent(attributes, data)
     headers, data = to_structured(event)
-    
+
     print(headers)
     print(data)
-    requests.post(brokerEndpoint, data = data, headers=headers)
+    requests.post(brokerEndpoint, data=data, headers=headers)
