@@ -1,15 +1,13 @@
 import datetime
 import os
 
+import requests
+from cloudevents.http import CloudEvent, to_structured
+from detector import detector
 from feast import FeatureStore, FileSource
 from feast.infra.offline_stores.contrib.postgres_offline_store.postgres_source import (
     PostgreSQLSource,
 )
-from pytz import utc
-
-from detector import detector
-from cloudevents.http import CloudEvent, to_structured
-import requests
 
 
 def getHistoricalData(modelName, store, historicalFeatures):
@@ -80,8 +78,8 @@ if __name__ == "__main__":
         "algorithmExecution": executionName,
         "level": level,
         "rawResult": str(raw),
-        "startDate": startDate,
-        "endDate": endDate,
+        "startDate": startDate.isoformat(),
+        "endDate": endDate.isoformat(),
     }
 
     event = CloudEvent(attributes, data)
