@@ -7,6 +7,7 @@ import base64
 import requests
 import uuid
 from kubernetes import client, config
+import json
 
 
 bp = Blueprint("events", __name__)
@@ -93,6 +94,7 @@ def triggerExecution(eventData):
         },
         {"name": "AWS_ACCESS_KEY_ID", "value": "minio"},
         {"name": "AWS_SECRET_ACCESS_KEY", "value": "minio123"},
+        {"parameters": json.dumps(eventData["parameters"])}
     ]
     algorithmName = eventData["algorithmName"]
     config.load_incluster_config()
