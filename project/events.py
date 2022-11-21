@@ -94,7 +94,7 @@ def triggerExecution(eventData):
         },
         {"name": "AWS_ACCESS_KEY_ID", "value": "minio"},
         {"name": "AWS_SECRET_ACCESS_KEY", "value": "minio123"},
-        {"parameters": json.dumps(eventData["parameters"])}
+        {"name": "parameters", "value": json.dumps(eventData["parameters"])}
     ]
     algorithmName = eventData["algorithmName"]
     config.load_incluster_config()
