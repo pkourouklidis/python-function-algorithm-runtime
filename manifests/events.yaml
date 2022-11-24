@@ -7,7 +7,7 @@ spec:
   broker: default
   filter:
     attributes:
-      type: org.lowcomote.panoptes.baseAlgorithm.create
+      type: org.lowcomote.panoptes.algorithm.create
       subject: pythonFunction
   subscriber:
     ref:

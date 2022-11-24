@@ -31,7 +31,7 @@ def test_algorithm_create(app):
     attributes = {
         "Content-Type": "application/json",
         "source": "from-galaxy-far-far-away",
-        "type": "org.lowcomote.panoptes.baseAlgorithm.create",
+        "type": "org.lowcomote.panoptes.algorithm.create",
     }
 
     data = {

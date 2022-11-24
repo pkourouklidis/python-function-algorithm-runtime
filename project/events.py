@@ -19,7 +19,7 @@ def receiveEvent():
     current_app.logger.info(
         "Received CloudEvent of type %s and data %s", event["type"], event.data
     )
-    if event["type"] == "org.lowcomote.panoptes.baseAlgorithm.create":
+    if event["type"] == "org.lowcomote.panoptes.algorithm.create":
         buildAlgorithm(event.data)
     elif event["type"] == "org.lowcomote.panoptes.baseAlgorithmExecution.trigger":
         triggerExecution(event.data)
