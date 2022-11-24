@@ -30,7 +30,7 @@ def receiveEvent():
 
 def buildAlgorithm(eventData):
     repoURL = urlparse(eventData["codebase"])
-    gitlabToken = os.getenv["GITLAB_TOKEN"]
+    gitlabToken = os.environ["GITLAB_TOKEN"]
     repo = "https://oath2:"+gitlabToken+"@"+repoURL.netloc+repoURL.path
     tempdir = "/tmp/" + str(uuid.uuid4())
     git.clone(repo, tempdir)
