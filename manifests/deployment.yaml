@@ -22,6 +22,9 @@ spec:
         env:
         - name: brokerEndpoint
           value: http://broker-ingress.knative-eventing.svc.cluster.local/panoptes/default
+        envFrom:
+        - secretRef:
+          name: gitlabToken 
       imagePullSecrets:
       - name: panoptes-registry-credentials
       serviceAccount: algorithm-runtime

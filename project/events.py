@@ -8,6 +8,8 @@ import requests
 import uuid
 from kubernetes import client, config
 import json
+import os
+from urllib.parse import urlparse
 
 
 bp = Blueprint("events", __name__)
@@ -27,7 +29,9 @@ def receiveEvent():
 
 
 def buildAlgorithm(eventData):
-    repo = eventData["codebase"]
+    repoURL = urlparse(eventData["codebase"])
+    gitlabToken = os.getenv["GITLAB_TOKEN"]
+    repo = "https://oath2:"+gitlabToken+"@"+repoURL.netloc+repoURL.path
     tempdir = "/tmp/" + str(uuid.uuid4())
     git.clone(repo, tempdir)
     descriptor = createDescriptor(eventData["name"], tempdir)
