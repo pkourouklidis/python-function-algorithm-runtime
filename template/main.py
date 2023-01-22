@@ -60,10 +60,10 @@ if __name__ == "__main__":
     store = FeatureStore(repo_path=".")
     parameters = json.loads(os.environ["parameters"])
     historicalData = None
-    if len(historicalFeatures) > 0:
+    if historicalFeatures[0] != '':
         historicalData = getHistoricalData(modelName, store, historicalFeatures)
     liveData = None
-    if len(liveFeatures) > 0:
+    if liveFeatures[0] != '':
         liveData = getLiveData(deploymentName, store, liveFeatures, startDate, endDate)
     level, raw = detector(historicalData, liveData, parameters)
     print(historicalData)
