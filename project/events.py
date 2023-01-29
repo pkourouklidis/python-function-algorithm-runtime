@@ -19,39 +19,45 @@ def receiveEvent():
     current_app.logger.info(
         "Received CloudEvent of type %s and data %s", event["type"], event.data
     )
-    if event["type"] == "org.lowcomote.panoptes.algorithm.create":
-        buildAlgorithm(event.data)
+    if event["type"] == "org.lowcomote.panoptes.algorithm.create" and event["subject"] == "pythonFunction":
+        buildAlgorithm(event.data, False)
+    elif event["type"] == "org.lowcomote.panoptes.algorithm.create" and event["subject"] == "higherOrderPythonFunction":
+        buildAlgorithm(event.data, True)
     elif event["type"] == "org.lowcomote.panoptes.baseAlgorithmExecution.trigger":
         triggerExecution(event.data)
+    elif event["type"] == "org.lowcomote.panoptes.higherOrderAlgorithmExecution.trigger":
+        triggerHOExecution(event.data)
     return Response(status=200)
 
 
-def buildAlgorithm(eventData):
+def buildAlgorithm(eventData, HO):
     repoURL = urlparse(eventData["codebase"])
     gitlabToken = os.environ["GITLAB_TOKEN"]
     repo = "https://oath2:" + gitlabToken + "@" + repoURL.netloc + repoURL.path
     id = str(uuid.uuid4())
     git.clone(repo, "/tmp/" + id)
-    createRequirements(id)
-    packageContext(id)
+    createRequirements(id, HO)
+    packageContext(id, HO)
     storeBuildContext(id)
     launchKanikoBuild(id, eventData["name"])
     cleanup(id)
 
-
-def createRequirements(id):
+def createRequirements(id, HO):
     with open("/tmp/" + id + "/requirements.txt", "a") as file:
         # base dependencies
-        file.write("\nfeast[aws,postgres]\npandas\ncloudevents\nrequests\n\n")
+        file.write("\ncloudevents\nrequests\n\n")
+        if not HO:
+            file.write("\nfeast[aws,postgres]\npandas")
 
-
-def packageContext(id):
+def packageContext(id, HO):
     tar = tarfile.open("/tmp/" + id + "/" + id + ".tar.gz", "w:gz")
-    tar.add("./template/main.py", "main.py")
-    tar.add("./template/feature_store.yaml", "feature_store.yaml")
-    tar.add("./template/Dockerfile", "Dockerfile")
+    templateDir = "./HOtemplate/" if HO else "./template/"
+    tar.add(templateDir + "main.py", "main.py")
+    tar.add(templateDir + "Dockerfile", "Dockerfile")
     tar.add("/tmp/" + id + "/detector.py", "detector.py")
     tar.add("/tmp/" + id + "/requirements.txt", "requirements.txt")
+    if not HO:
+        tar.add(templateDir + "feature_store.yaml", "feature_store.yaml")
     tar.close()
 
 
@@ -186,3 +192,48 @@ def create_job_object(algorithmName, envList):
     )
 
     return job
+
+def triggerHOExecution(eventData):
+    envList = [
+        {"name": "panoptesEndpoint", "value": "panoptes-orchestrator.panoptes.svc.cluster.local"},
+        {"name": "observedAlgorithmExecution", "value": eventData["observedAlgorithmExecutionName"]},
+        {"name": "count", "value": str(eventData["windowSize"])},
+        {"name": "parameters", "value": json.dumps(eventData["parameters"])},
+        {"name": "deploymentName", "value": eventData["deploymentName"]},
+        {
+            "name": "higherOrderAlgorithmExecutionName",
+            "value": eventData["higherOrderAlgorithmExecutionName"]
+        },
+        {"name": "startDate", "value": eventData["startDate"]},
+        {"name": "endDate", "value": eventData["endDate"]},
+        {
+            "name": "brokerEndpoint",
+            "value": "http://broker-ingress.knative-eventing.svc.cluster.local/panoptes/default",
+        }
+    ]
+
+    container = client.V1Container(
+        name="higher-order-algorithm-execution",
+        image="registry.docker.nat.bt.com/panoptes/" + eventData["higherOrderAlgorithmName"] + ":latest",
+        env=envList,
+    )
+    template = client.V1PodTemplateSpec(
+        spec=client.V1PodSpec(
+            image_pull_secrets=[{"name": "panoptes-registry-credentials"}],
+            restart_policy="Never",
+            containers=[container],
+        )
+    )
+    job = client.V1Job(
+        api_version="batch/v1",
+        kind="Job",
+        metadata=client.V1ObjectMeta(
+            name="python-function-execution-" + str(uuid.uuid4())
+        ),
+        spec = client.V1JobSpec(
+        template=template, backoff_limit=4, ttl_seconds_after_finished=300
+    )
+    )
+    config.load_incluster_config()
+    batch_v1 = client.BatchV1Api()
+    api_response = batch_v1.create_namespaced_job(body=job, namespace="panoptes")

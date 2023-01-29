@@ -11,6 +11,7 @@ RUN pip --disable-pip-version-check --no-cache-dir install -r /app/requirements.
 COPY app.py /app/
 COPY project /app/project
 COPY template /app/template
+COPY HOtemplate /app/HOtemplate
 WORKDIR /app
 
 # Start application
