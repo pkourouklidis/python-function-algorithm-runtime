@@ -11,7 +11,7 @@ from kubernetes import client, config
 from sh import git, rm
 
 bp = Blueprint("events", __name__)
-
+latestHash = {}
 
 @bp.route("/", methods=["POST"])
 def receiveEvent():
@@ -31,16 +31,24 @@ def receiveEvent():
 
 
 def buildAlgorithm(eventData, HO):
+    algorithmName = eventData["name"]
     repoURL = urlparse(eventData["codebase"])
     gitlabToken = os.environ["GITLAB_TOKEN"]
     repo = "https://oath2:" + gitlabToken + "@" + repoURL.netloc + repoURL.path
     id = str(uuid.uuid4())
     git.clone(repo, "/tmp/" + id)
-    createRequirements(id, HO)
-    packageContext(id, HO)
-    storeBuildContext(id)
-    launchKanikoBuild(id, eventData["name"])
-    cleanup(id)
+    commitHash = str(git("--no-pager", "--git-dir", "/tmp/" + id + "/.git", "log", "-n1", '--pretty=format:"%H"')).strip('"')
+    current_app.logger.info(commitHash)
+    if (latestHash.get(algorithmName, None) != commitHash):
+        current_app.logger.info("building image for " + algorithmName)
+        latestHash[algorithmName] = commitHash
+        createRequirements(id, HO)
+        packageContext(id, HO)
+        storeBuildContext(id)
+        launchKanikoBuild(id, eventData["name"])
+        cleanup(id)
+    else:
+        current_app.logger.info("Already built image for " + algorithmName)
 
 def createRequirements(id, HO):
     with open("/tmp/" + id + "/requirements.txt", "a") as file:
@@ -94,8 +102,8 @@ def launchKanikoBuild(id, algorithmName):
         command=[
             "/bin/sh",
             "-c",
-            "/kaniko/executor --cache=false --context s3://kaniko/{}.tar.gz --destination=registry.docker.nat.bt.com/panoptes/{}:latest".format(
-                id, algorithmName
+            "/kaniko/executor --cache=false --context s3://kaniko/{}.tar.gz --destination=registry.docker.nat.bt.com/panoptes/{}:{}".format(
+                id, algorithmName, latestHash[algorithmName]
             ),
         ],
     )
@@ -166,7 +174,7 @@ def create_job_object(algorithmName, envList):
     # Configureate Pod template container
     container = client.V1Container(
         name="base-algorithm-execution",
-        image="registry.docker.nat.bt.com/panoptes/" + algorithmName + ":latest",
+        image="registry.docker.nat.bt.com/panoptes/{}:{}".format(algorithmName, latestHash[algorithmName]),
         env=envList,
     )
     # Create and configure a spec section
